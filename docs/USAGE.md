@@ -4,6 +4,8 @@
 
 This project builds an independent repaired copy from the vendor software installed on your PC. The Git repository provides repair source and tools; obtain vendor executables and runtime dependencies from your own installation.
 
+For a graphical workflow, use the [double-click assistant](PORTABLE.md): extract the portable package, run `MacKMLinkRepair.exe` and click **一键修复并启用**. The complete source-tool steps below remain available for development and diagnostics.
+
 ## Supported input
 
 | Item | Currently supported |

@@ -4,6 +4,12 @@
 
 An isolated, reproducible binary repair for the verified Windows MacKMLink 1.0.1066.111 build. The original installed executable is never edited. The project reconstructs the relevant clipboard logic from disassembly; it does not contain the vendor's private source code.
 
+## Double-click assistant
+
+The Windows x64 portable package provides a Simplified Chinese graphical assistant: extract the ZIP, run `MacKMLinkRepair.exe` and click **一键修复并启用** (Repair and activate). It detects the installed original, builds and validates an isolated copy, starts it and selects it for login startup. No Python installation or command entry is needed. Existing verified repair workspaces are reused. **恢复原版** restores the running original and its login target.
+
+See the [portable usage guide](docs/PORTABLE.md) for USB installation, file locations and rollback, or [build the package from source](docs/BUILD_PORTABLE.md). The package includes the helper and its runtime, not vendor binaries. Switching may briefly disconnect the link. The helper targets the same exact original hash as the command-line tools.
+
 See the [usage guide](docs/USAGE.md) for continued use on this PC, another PC, or after reinstallation, including version checks, building, validation, runtime selection, login startup, and rollback. The tool is pinned to one original hash; other older builds need separate analysis.
 
 The examined hardware exposes a USB virtual CD with a vendor installer/loader, `SKLoader.exe`. The guide explains this installation source and how to check the active copy after reconnecting. The repair input is the deployed `MacKMLink.exe`; hardware installation media retains the vendor software.

@@ -16,7 +16,7 @@ def target(code, operand, end, origin):
     return origin + end + struct.unpack_from("<i", code, operand)[0]
 
 
-def run(directory):
+def run(directory, native_executable=None):
     directory = directory.resolve()
     original = (directory / "MacKMLink.original.exe").read_bytes()
     actual = (directory / "MacKMLink.exe").read_bytes()
@@ -69,15 +69,18 @@ def run(directory):
     if not handle:
         raise ct.WinError(ct.get_last_error())
     loader.FreeLibrary(handle)
-    probe = Path(__file__).with_name("native_guard_probe.cs")
-    compiler = Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe")
-    executable = directory / "native_guard_probe.exe"
-    compiled = subprocess.run([str(compiler), "/nologo", "/platform:x86", "/target:exe",
-                               "/out:" + str(executable), str(probe)], capture_output=True, timeout=30)
-    if compiled.returncode:
-        raise RuntimeError(compiled.stdout.decode(errors="replace") + compiled.stderr.decode(errors="replace"))
+    executable = native_executable or directory / "native_guard_probe.exe"
+    if native_executable is None:
+        probe = Path(__file__).with_name("native_guard_probe.cs")
+        compiler = Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe")
+        compiled = subprocess.run([str(compiler), "/nologo", "/platform:x86", "/target:exe",
+                                   "/out:" + str(executable), str(probe)], capture_output=True, timeout=30,
+                                  creationflags=subprocess.CREATE_NO_WINDOW)
+        if compiled.returncode:
+            raise RuntimeError(compiled.stdout.decode(errors="replace") + compiled.stderr.decode(errors="replace"))
     result = subprocess.run([str(executable), manifest["guard_bytes"]],
-                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=45)
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=45,
+                            creationflags=subprocess.CREATE_NO_WINDOW)
     if result.returncode:
         raise RuntimeError(result.stderr or result.stdout)
     native = json.loads(result.stdout.strip().lstrip("\ufeff"))

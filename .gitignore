@@ -1,6 +1,9 @@
 /artifacts/
 /runtime/
 /vendor/
+/dist/
+/build/
+/.venv*/
 __pycache__/
 *.pyc
 *.dmp

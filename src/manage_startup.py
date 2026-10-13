@@ -6,20 +6,25 @@ import json
 from pathlib import Path
 import winreg
 
-from patching.bitmap_guard import ORIGINAL_SHA256
+from patching.bitmap_guard import ORIGINAL_SHA256, PATCHED_SHA256
 from startup import registry
 
 ARGUMENT = "-GN:RunFromRegistry"
 
 
 def verified_paths(project):
+    project = Path(project).resolve()
     info = json.loads((project / "runtime/runtime-info.json").read_text(encoding="utf-8"))
     manifest = json.loads((project / "artifacts/patch-manifest.json").read_text(encoding="utf-8"))
     paths = {"original": Path(info["original_executable"]).resolve(),
              "repair": Path(info["repaired_executable"]).resolve()}
     if project / "runtime" not in paths["repair"].parents:
         raise ValueError("Repair executable is outside the project runtime")
-    for mode, expected in [("original", ORIGINAL_SHA256), ("repair", manifest["patched_sha256"])]:
+    if manifest["original_sha256"] != ORIGINAL_SHA256 or manifest["patched_sha256"] != PATCHED_SHA256:
+        raise ValueError("Manifest references an unknown executable build")
+    if info["original_sha256"] != ORIGINAL_SHA256 or info["patched_sha256"] != PATCHED_SHA256:
+        raise ValueError("Runtime references an unknown executable build")
+    for mode, expected in [("original", ORIGINAL_SHA256), ("repair", PATCHED_SHA256)]:
         if hashlib.sha256(paths[mode].read_bytes()).hexdigest() != expected:
             raise ValueError(f"Unexpected executable hash: {paths[mode]}")
     return paths
@@ -37,6 +42,16 @@ def recognized(entry, paths):
     allowed = {text.casefold() for path in paths.values()
                for text in (command(path), f"{path} {ARGUMENT}")}
     return entry["value"].strip().casefold() in allowed
+
+
+def preflight(project):
+    paths = verified_paths(project)
+    before, enabled = registry.snapshot(), registry.approval()
+    if not all(recognized(entry, paths) for entry in before.values()):
+        raise ValueError("CS Dispatch contains an unrelated command; refusing to overwrite it")
+    if enabled["state"] == "disabled":
+        raise RuntimeError("CS Dispatch is disabled in Windows Startup; no enablement setting was changed")
+    return paths
 
 
 def manage(project, mode):

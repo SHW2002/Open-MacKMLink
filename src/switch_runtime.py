@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import subprocess
 
+from patching.bitmap_guard import ORIGINAL_SHA256, PATCHED_SHA256
+
 
 class ProcessEntry(ct.Structure):
     _fields_ = [("size", wt.DWORD), ("usage", wt.DWORD), ("pid", wt.DWORD),
@@ -53,13 +55,15 @@ def processes():
     return api, found
 
 
-def switch(mode):
-    project = Path(__file__).resolve().parents[1]
+def switch(mode, project=None):
+    project = (project or Path(__file__).resolve().parents[1]).resolve()
     info = json.loads((project / "runtime/runtime-info.json").read_text(encoding="utf-8"))
     original = Path(info["original_executable"]).resolve()
     repaired = Path(info["repaired_executable"]).resolve()
     if project / "runtime" not in repaired.parents:
         raise ValueError("Repaired path is outside the project runtime")
+    if info["original_sha256"] != ORIGINAL_SHA256 or info["patched_sha256"] != PATCHED_SHA256:
+        raise ValueError("Runtime references an unknown executable build")
     for path, key in [(original, "original_sha256"), (repaired, "patched_sha256")]:
         if hashlib.sha256(path.read_bytes()).hexdigest() != info[key]:
             raise ValueError(f"Unexpected executable hash: {path}")
