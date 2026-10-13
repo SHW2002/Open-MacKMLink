@@ -49,4 +49,4 @@
 
 原故障是偶发的，尚不能宣称所有现象长期完全消失。仍需后续正常使用中的多次截图及 Mac 图片同步反馈。修补可能跳过某次暂时无法读取的位图，避免原空指针崩溃；它没有修复截图工具自身的异常处理，也未证明第一次位图读取失败的全部原因。
 
-没有修改自动启动配置；重启电脑或原厂启动器重新拉起程序可能启动原版。可使用 `python src/switch_runtime.py repair` 再次切换，或使用 `python src/switch_runtime.py original` 回退。
+后续自动启动检查发现，原程序能自行登记运行路径，`CS Dispatch` 已指向修复版。新增管理命令备份并明确设置了该启动项，32/64 位视图读回一致、启用状态保留，PID 52592 没有重启。详情及尚未验证的下一次登录见 [STARTUP.md](STARTUP.md)。可使用 `python src/switch_runtime.py repair` 切换运行实例，或使用 `python src/switch_runtime.py original` 回退当前进程；登录启动目标由 `src/manage_startup.py` 管理。

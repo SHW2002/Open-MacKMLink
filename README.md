@@ -33,9 +33,24 @@ python src/switch_runtime.py repair
 python src/switch_runtime.py original
 ```
 
-Switching briefly interrupts MacKMLink. The launcher verifies both executable hashes and refuses to stop unrelated instances. It does not change startup settings. A reboot or the vendor launcher can therefore start the original build again.
+Switching briefly interrupts MacKMLink. The launcher verifies both executable hashes and refuses to stop unrelated instances. MacKMLink itself can register the executable being run in its existing `CS Dispatch` login entry. See the next section to inspect or explicitly select that entry.
 
 The repaired executable is unsigned: the original Authenticode certificate is removed because it cannot authenticate modified code. No Windows security settings are changed.
+
+## Login startup
+
+After preparing the runtime, manage the existing current-user login entry:
+
+```powershell
+python src/manage_startup.py status
+python src/manage_startup.py repair
+python src/manage_startup.py original
+python src/manage_startup.py restore
+```
+
+`repair` sets `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\CS Dispatch` to the quoted repaired executable with the original `-GN:RunFromRegistry` argument. Windows launches the EXE directly at login; Python is only needed to manage the setting. The script verifies executable hashes, backs up the first observed values to ignored `startup-backup.local.json`, checks the result, and preserves unrelated entries and Windows startup enablement. It refuses to overwrite an unrelated command or a disabled entry. `original` selects the installed EXE, while `restore` restores the saved pre-script values, which may already refer to the repair.
+
+These commands do not restart the current process. MacKMLink can rewrite its login entry when a different copy is launched. Keep the project runtime at its configured path. See [startup analysis and validation](docs/STARTUP.md) for the local verification and full rollback commands; the next Windows login has not been tested.
 
 ## Background command-line diagnostics
 

@@ -33,9 +33,24 @@ python src/switch_runtime.py repair
 python src/switch_runtime.py original
 ```
 
-切换会短暂中断 MacKMLink。脚本验证两个程序的哈希，并拒绝退出不相关的实例。没有修改自动启动配置，因此重启电脑或厂商启动器重新拉起程序时，可能再次启动原版。
+切换会短暂中断 MacKMLink。脚本验证两个程序的哈希，并拒绝退出不相关的实例。MacKMLink 本身能将正在运行的程序登记到原有的 `CS Dispatch` 登录启动项，可按下一节的命令检查或明确选择该入口。
 
 修补版为未签名程序：原厂签名无法验证修改后的代码，因此在副本中移除了签名证书。没有修改 Windows 安全设置。
+
+## 登录自动启动
+
+准备运行目录后，可管理原有的当前用户登录启动项：
+
+```powershell
+python src/manage_startup.py status
+python src/manage_startup.py repair
+python src/manage_startup.py original
+python src/manage_startup.py restore
+```
+
+`repair` 将 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\CS Dispatch` 设为带引号的修复版路径，保留原参数 `-GN:RunFromRegistry`。Windows 登录时直接运行 EXE；Python 只用于管理配置。脚本先验证程序哈希，将首次观察到的值保存到不进入 Git 的 `startup-backup.local.json`，写入后核对，并保留其他启动项及 Windows 的启用状态。遇到无关命令或被禁用的启动项会拒绝覆盖。`original` 选择原安装 EXE；`restore` 恢复脚本操作前的值，该值也可能已经指向修复版。
+
+这些命令不会重启当前进程。启动另一份 MacKMLink 时，它可能自行重写登录启动项。请保留项目运行目录的配置路径。具体分析、验证及完整回退命令见[自动启动说明](docs/STARTUP.md)；尚未实际测试下一次 Windows 登录。
 
 ## 后台命令行诊断
 
