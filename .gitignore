@@ -1,0 +1,7 @@
+/artifacts/
+/runtime/
+/vendor/
+__pycache__/
+*.pyc
+*.dmp
+*.local.json
