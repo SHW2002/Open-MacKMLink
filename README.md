@@ -4,6 +4,10 @@
 
 An isolated, reproducible binary repair for the verified Windows MacKMLink 1.0.1066.111 build. The original installed executable is never edited. The project reconstructs the relevant clipboard logic from disassembly; it does not contain the vendor's private source code.
 
+See the [usage guide](docs/USAGE.md) for continued use on this PC, another PC, or after reinstallation, including version checks, building, validation, runtime selection, login startup, and rollback. The tool is pinned to one original hash; other older builds need separate analysis.
+
+The examined hardware exposes a USB virtual CD with a vendor installer/loader, `SKLoader.exe`. The guide explains this installation source and how to check the active copy after reconnecting. The repair input is the deployed `MacKMLink.exe`; hardware installation media retains the vendor software.
+
 The repair inserts two checks after `GetClipboardData(CF_BITMAP)`: reject a null bitmap handle and a null `CBitmap` object. Failure follows the existing no-bitmap path, including the application's original clipboard and object cleanup. Successful bitmap processing continues through the original code.
 
 ## Build and verify
